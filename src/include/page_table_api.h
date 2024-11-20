@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "config.h"
+
 /**
  * @file page_table_api.h
  * @brief this file maintains external API and data structures
@@ -68,6 +70,37 @@ typedef struct page_table_entry {
 
 // Shorthand
 typedef page_table_entry_t pte_t;
+
+
+/**
+ * Context struct
+ * 
+ * This struct stores the context of a run of this program
+ * Basically, it's a struct of pointers to the data structures you need to run the program
+ */
+typedef struct ptw_sim_context {
+	/**
+	 * Three TLBs
+	 */
+	tlbe_t oneg_tlb[TLB_ENTRY_COUNT];
+	tlbe_t twom_tlb[TLB_ENTRY_COUNT];
+	tlbe_t fourk_tlb[TLB_ENTRY_COUNT];
+	/**
+	 * Array of pointers to page tables
+	 * In sim, these are indexes into the PT array
+	 * In hardware, these are registers that point at a single PDP entry
+	 */
+	uint64_t page_table_pointers[MAX_PID];
+
+	/**
+	 * One PDP array per PID
+	 * These must point at valid PDEs and PTEs
+	 */
+	pte_t page_table_base[MAX_PID][NUM_PDP_ENTRY];
+
+
+
+} ptw_sim_context_t;
 
 
 /**
