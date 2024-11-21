@@ -42,6 +42,18 @@ static inline uint8_t sat_inc(uint8_t a){
 }
 
 
+typedef struct permissions {
+    union{
+        struct{
+            uint8_t:1 read;
+            uint8_t:1 write;
+            uint8_t:1 execute;
+        } val;
+        uint8_t raw;
+    } 
+} permissions_t;
+
+
 /**
  * Check if a page's permissions are more or less strict than the permissions requested
  * 

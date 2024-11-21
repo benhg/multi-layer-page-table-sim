@@ -46,6 +46,7 @@ typedef struct tlb_entry {
 			uint8_t:1 user_supervisor;
 			permissions_t permissions;
 			uint32_t pid;
+			uint8_t plru_counter; // Counter for PLRU eviction
 } tlb_entry_t;
 
 // Shorthand
@@ -68,7 +69,7 @@ typedef struct permissions {
  */
 typedef struct page_table_entry {
 	  uint64_t vpn; //< the virtual page number this page is encoding
-                  //< We keep this here so that the page table doesn't have to
+                  //< We keep this here so we can do sanity checking in the model
                   // be sorted by VPN in the model. In real memory, the page table is always sorted and indexed by VPN so it doesn't need to be duplicated.
     union {
         uint16_t oneg_pte_index : 8;   //< One gig PTE offset (which page entry do we read)
@@ -124,16 +125,16 @@ typedef struct ptw_sim_context {
 	/**
 	 * Array of pointers to page tables
 	 * In sim, these are indexes into the PT array
-	 * In hardware, these are registers that point at a single PDP entry
+	 * In hardware, these are registers that point at a single SDP entry
+	 * 
+	 * Each of these pointes must point at 512 valid SDP pages.
+	 * 512 SDP entries, each of which is 64b consumes 1 page
+	 * In real hardware, we'd shave this to be 64b exactly.
+	 * In simulator, add extra metadata to make life easy.
 	 */
-	uint64_t page_table_pointers[MAX_PID];
+	page_table_entry_t * page_table_pointers[MAX_PID];
 
-	/**
-	 * One PDP array per PID
-	 * These must point at valid PDEs and PTEs
-	 */
-	pte_t page_table_base[MAX_PID][NUM_PDP_ENTRY];
-
+	// TODO: add backend management pointers here for easy programming of falid page tables
 
 
 } ptw_sim_context_t;
