@@ -4,6 +4,7 @@
  * TLB translation related functions
  */
 
+#include "tlb.h"
 
 void lru_evict(tlb_t * tlb){
 	// For now, this is really more of a LFU algorithm.
