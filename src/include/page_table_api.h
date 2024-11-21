@@ -28,6 +28,15 @@ typedef enum page_size {
  */
 
 /**
+ * TLB
+ */
+typedef struct tlb {
+	tlbe_t arr[TLB_ENTRY_COUNT];
+	uint8_t slots_in_use;
+	bool occupancy[TLB_ENTRY_COUNT];
+} tlb_t;
+
+/**
  * TLB entry
  * Note that page size is not stored in the TLB. This is because each page size has a separaate TLB
  */
@@ -109,9 +118,9 @@ typedef struct ptw_sim_context {
 	/**
 	 * Three TLBs
 	 */
-	tlbe_t oneg_tlb[TLB_ENTRY_COUNT];
-	tlbe_t twom_tlb[TLB_ENTRY_COUNT];
-	tlbe_t fourk_tlb[TLB_ENTRY_COUNT];
+	tlb_t oneg_tlb;
+	tlb_t twom_tlb;
+	tlb_t fourk_tlb;
 	/**
 	 * Array of pointers to page tables
 	 * In sim, these are indexes into the PT array

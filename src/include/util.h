@@ -23,6 +23,23 @@
         free(ptr);                                                             \
     }
 
+/**
+ * Saturated sum - sum only if val is less than 255
+ */
+static inline uint8_t sat_sum(uint8_t a, uint8_t b){
+    if ((EIGHT_BIT_MASK - a) <= b){
+        return EIGHT_BIT_MASK;
+    }
+
+    return a + b;
+}
+
+/**
+ * Saturated Increment
+ */
+static inline uint8_t sat_inc(uint8_t a){
+    return sat_sum(a, 1);
+}
 
 
 /**
