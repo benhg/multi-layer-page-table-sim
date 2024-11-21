@@ -36,6 +36,7 @@ typedef struct tlb_entry {
 			uint64_t phys_frame; // Offset into page - u64 type because we use this for all 3 page table sizes.
 			uint8_t:1 user_supervisor;
 			permissions_t permissions;
+			uint32_t pid;
 } tlb_entry_t;
 
 // Shorthand
@@ -86,6 +87,19 @@ typedef page_table_entry_t pte_t;
 
 
 /**
+ * Address context struct
+ * Use this to move around address and metadata (PID, etc.)
+ * This keeps from "parameter explosion"
+ */
+typedef struct address_context {
+	uint64_t va;
+	permissions_t permissions;
+	uint8_t:1 user_supervisor;
+	uint32_t pid;
+} address_context_t;
+
+
+/**
  * Context struct
  * 
  * This struct stores the context of a run of this program
@@ -114,6 +128,7 @@ typedef struct ptw_sim_context {
 
 
 } ptw_sim_context_t;
+
 
 
 /**
