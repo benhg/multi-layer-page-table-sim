@@ -23,4 +23,15 @@
         free(ptr);                                                             \
     }
 
+
+
+/**
+ * Check if a page's permissions are more or less strict than the permissions requested
+ * 
+ * Return true if the request would be permitted. EG. read request to a R/W page is allowed, but W to an RO page isn't
+ */
+static bool check_permissions(permissions_t permissions_req, permissions_t permissions_page)
+
+
+
 #endif

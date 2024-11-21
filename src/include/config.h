@@ -10,27 +10,19 @@
  * Misc. useful macros
  */
 
-#define KB(x) (1024U * x)
-#define MB(x) (KB(KB(x)))
-#define GB(x) (KB(MB(x)))
-
-#define EIGHT_BIT_MASK 0xff
-#define SIXTEEN_BIT_MASK 0xffff
-#define TWENTY_SIX_BIT_MASK 0x3FFFFFF
-#define THIRTY_TWO_BIT_MASK 0xffffffff
-#define SIXTY_FOUR_BIT_MASK 0xffffffffffffffff
-
-/**
- * Safe free() wrapper
- */
-#define PTR_FREE(ptr)                                                          \
-    if (ptr != NULL) {                                                         \
-        free(ptr);                                                             \
-    }
 
 
 #define VA_SIZE 64
 #define PA_SIZE 63
+
+// 30 bits are needed for offset into 1G page
+#define VPN_MASK_1GB (~((1ULL << (va_size - 30)) -1))
+
+// 21 bits are needed for offset into 2M page
+#define VPN_MASK_2MB (~((1ULL << (va_size - 21)) -1))
+
+// 12 bits are needed as an offset into the 4k page
+#define VPN_MASK_4KB (~((1ULL << (va_size - 12)) -1))
 
 
 #endif

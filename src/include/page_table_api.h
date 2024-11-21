@@ -33,12 +33,24 @@ typedef enum page_size {
  */
 typedef struct tlb_entry {
 			uint64_t va; /* In a real TLB, this is a CAM structure (or some kind of multi-way, set-associative lookup) , so the VA itself is programmed into the block of flipflops that are used for the CAM lookup. So it's not technically wrong to have it here. However, for simplicity, we will implement the TLB lookup in this program as iterating through all the TLB entries and comparing against this.If/when we add cycle counting, we will reflect the true nature of the TLB by undercounting carefully. */
-			uint64_t pa_offset; // Offset into page - u64 type because we use this for all 3 page table sizes.
-			uint64_t vpn_mask; // What to mask off in order to get the offset
+			uint64_t phys_frame; // Offset into page - u64 type because we use this for all 3 page table sizes.
+			uint8_t:1 user_supervisor;
+			permissions_t permissions;
 } tlb_entry_t;
 
 // Shorthand
 typedef tlb_entry_t tlbe_t;
+
+typedef struct permissions {
+	union{
+		struct{
+			uint8_t:1 read;
+			uint8_t:1 write;
+			uint8_t:1 execute;
+		} val;
+		uint8_t raw;
+	} 
+} permissions_t;
 
 
 /**
@@ -57,9 +69,10 @@ typedef struct page_table_entry {
     // Separated by size to help keep address comparisons clear.
     struct {
         uint32_t pid;                 //< PID the page is assigned to
-        enum page_size page_size : 2; //< Page size: 0: 4K, 1: 2M, 2: 1G
-        uint8_t permission : 3;       //< R/W/X bits
+        page_size page_size; //< Page size: 0: 4K, 1: 2M, 2: 1G
+        permissions_t permissions;       //< R/W/X bits
         uint8_t user_supervisor : 1;  //< 0 for user page, 1 for supervisor page
+        							  // Uint8 instead of bool to use bitfield
         uint8_t global : 1;           //< Currently unused global bit
         uint8_t valid : 1;            //< Valid bit
         uint8_t noncacheable : 1; //< Non-cacheable (streaming, last use, etc.)
