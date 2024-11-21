@@ -24,6 +24,9 @@ void lru_evict(tlb_t * tlb){
 		if (tlb->arr[i].plru_counter < min_counter){
 			min_counter = tlb->arr[i].plru_counter;
 			evict_idx = i;
+		} else{
+			// If not evicting, decrement counter
+			tlb->arr[i].plru_counter --;
 		}
 
 	}
