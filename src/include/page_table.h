@@ -57,6 +57,42 @@
  * Function declarations for page tables
  */
 
+/**
+ * @brief Performs a page table walk to translate a virtual address to a physical address.
+ *
+ * This function translates a given virtual address (VA) to its corresponding 
+ * physical address (PA) by traversing a multi-level page table structure. The 
+ * traversal is based on the address context and the page table walker simulation context.
+ *
+ * @param a_ctx A pointer to the address context, which contains details such as 
+ * the virtual address (VA), process ID (PID), permissions, and user/supervisor mode.
+ * @param ctx A pointer to the page table walker simulation context, which contains 
+ * information like page table pointers and system-wide configuration.
+ *
+ * @return The physical address corresponding to the given virtual address, or an 
+ * appropriate error code if the translation fails:
+ * - `-EFAULT`: Malformed entry in the page table.
+ * - `-EINVAL`: Invalid or non-present page table entry (translation not valid).
+ * - `-EUNAUTHORIZED`: Insufficient permissions to access the page.
+ * - `-EACCESS`: User/supervisor mode mismatch.
+ *
+ * @details
+ * The function performs the following steps:
+ * - Extracts the PID to locate the base of the page directory pointer table.
+ * - Uses the top bits of the VA to index into the directory pointer table, then 
+ * retrieves the physical frame of the page directory.
+ * - Iteratively descends through the page directory pointer table (SDP), page 
+ * directory (PDP), and page table entry (PTE) levels:
+ *   - Validates the virtual address matches the expected entry.
+ *   - Checks permissions and user/supervisor mode at each level.
+ * - If a valid page table entry with a matching page size is found, computes 
+ * the physical address by combining the physical frame and VA offset.
+ * - If the page size is 1GB, 2MB, or 4KB, returns the PA for the corresponding 
+ * page size directly.
+ * - If no valid translation is found, returns an error code indicating a page fault.
+ *
+ * This function assumes that each VA maps to a single PA within the context of a PID.
+ */
 uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx);
 
 #endif 
