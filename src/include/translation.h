@@ -5,6 +5,10 @@
  */
 
 #ifndef TRANSLATION_H
+#define TRANSLATION_H
+
+#include "hw_structures.h"
+#include "page_table_api.h"
 
 /**
  * @brief Translates a virtual address to a physical address.

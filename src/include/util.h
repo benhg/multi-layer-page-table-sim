@@ -43,15 +43,17 @@ static inline uint8_t sat_inc(uint8_t a){
 
 
 typedef struct permissions {
-    union{
-        struct{
-            uint8_t:1 read;
-            uint8_t:1 write;
-            uint8_t:1 execute;
+    union {
+        struct {
+            uint8_t read : 1;    // 1-bit flag for read permission.
+            uint8_t write : 1;   // 1-bit flag for write permission.
+            uint8_t execute : 1; // 1-bit flag for execute permission.
+            uint8_t reserved : 5; // Remaining 5 bits reserved for future use.
         } val;
-        uint8_t raw;
-    } 
+        uint8_t raw; // Raw representation of all 8 bits.
+    };
 } permissions_t;
+
 
 
 /**
@@ -59,7 +61,7 @@ typedef struct permissions {
  * 
  * Return true if the request would be permitted. EG. read request to a R/W page is allowed, but W to an RO page isn't
  */
-static bool check_permissions(permissions_t permissions_req, permissions_t permissions_page)
+bool check_permissions(permissions_t permissions_req, permissions_t permissions_page);
 
 
 

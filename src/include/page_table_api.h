@@ -1,31 +1,16 @@
-#ifndef PAGE_TABLE_API_H
-#define PAGE_TABLE_API_H
-
-#include <stdint.h>
-
-#include "config.h"
-
 /**
  * @file page_table_api.h
  * @brief this file maintains external API and data structures
  * We use structs to model hardware structures like TLBs, page table walkers, etc.
  */
 
-/**
- * Utility Structs
- */
+#ifndef PAGE_TABLE_API_H
+#define PAGE_TABLE_API_H
 
-typedef enum page_size {
-	FOUR_K = 0;
-	TWO_M = 1;
-	ONE_G = 3;
-	SIZE_MAX = 4;
-} page_size_t;
-
-
-/**
- * Structs modeling hardware structures
- */
+#include "hw_structures.h"
+#include "config.h"
+#include "util.h"
+#include <stdint.h>
 
 
 
@@ -37,7 +22,7 @@ typedef enum page_size {
 typedef struct address_context {
 	uint64_t va;
 	permissions_t permissions;
-	uint8_t:1 user_supervisor;
+	uint8_t user_supervisor: 1;
 	uint32_t pid;
 } address_context_t;
 
@@ -65,14 +50,9 @@ typedef struct ptw_sim_context {
 	 * In real hardware, we'd shave this to be 64b exactly.
 	 * In simulator, add extra metadata to make life easy.
 	 */
-	page_table_entry_t * page_table_pointers[MAX_PID];
+	pte_t * page_table_pointers[MAX_PID];
 
 	// TODO: add backend management pointers here for easy programming of falid page tables
-
-	/**
-	 * For completeness, we can put the PDE and PTE blocks as well
-	 */
-	pte_t pde_page_base[MAX_PID][NUM_PDE_ENTRY];
 
 } ptw_sim_context_t;
 

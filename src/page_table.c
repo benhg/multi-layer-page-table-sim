@@ -32,13 +32,14 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
   uint64_t va = a_ctx->va;
   // Pointer to the page table base. That is a block of 512 SDP entries
+  uint32_t pid = a_ctx->pid;
   pte_t *page_table_base = ctx->page_table_pointers[pid];
-  uint32_p pid = a_ctx->pid;
+  
 
   // Top 9 bits of VA specify SPDP pointer
   // No page size maps to a real page at this level
   uint16_t sdp_offset = GET_SDP_ENTRY_IDX(va);
-  pte_t *sdp = page_table_base[sdp_offset];
+  pte_t *sdp = &page_table_base[sdp_offset];
 
   // If the VA doesn't match the VPN, we have a malformed SDP
   if (GET_SDP_BITS(va) != GET_SDP_BITS(sdp->vpn)) {
@@ -47,14 +48,14 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
   // If valid bit not set, then we have TNV (Translation Not Valid)
   // Alert the OS and make them fix it or whatever
-  if (!sdp->page_metadata.valid == 0x1) {
-    return -EINVAL
+  if ((sdp->page_metadata.valid != 0x1)) {
+    return -EINVAL;
   }
 
   // Check permissions - Need at least read.
   // Don't check against requested permissions since the page doesn't map here.
   permissions_t r_permissions = {0};
-  permissions.read = 1;
+  r_permissions.val.read = 1;
 
   if (!check_permissions(r_permissions, sdp->page_metadata.permissions)) {
     return -EUNAUTHORIZED;
@@ -65,11 +66,11 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
   // The phys_frame is overloaded. In this case, it points at a 4k page.
   // This address should always be 4k-aligned
-  pte_t *pdp_base = sdp->phys_frame;
+  pte_t *pdp_base = (pte_t *) sdp->phys_frame.oneg_pte_index;
   // Next 9 bits of VA specify PDP pointer
   // If PDP pointer is marked 1G page, return immediately with that frame
   uint16_t pdp_offset = GET_PDP_ENTRY_IDX(va);
-  pte_t *pdp = pdp_base[pdp_offset];
+  pte_t *pdp = &pdp_base[pdp_offset];
 
   // If the VA doesn't match the VPN, we have a malformed PDP
   if (GET_PDP_BITS(va) != GET_PDP_BITS(pdp->vpn)) {
@@ -98,7 +99,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
     // Ignore noncacheable and dirty until swap and caches exist, respectively
 
-    pa |= GET_PDP_BITS(pdp->phys_frame.oneg_page_index);
+    pa |= GET_PDP_BITS(pdp->phys_frame.oneg_pte_index);
     pa |= GET_PDP_OFFSET(va);
 
     return pa;
@@ -109,9 +110,9 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
     return -EUNAUTHORIZED;
   }
 
-  pte_t *pde_base = pdp->phys_frame;
+  pte_t *pde_base = (pte_t *) pdp->phys_frame.twom_pte_index;
   uint16_t pde_offset = GET_PDP_ENTRY_IDX(va);
-  pte_t *pde = pde_base[pde_offset];
+  pte_t *pde = &pde_base[pde_offset];
 
   // Otherwise, use that to look up the PDE
   // If PDE page is marked as a 2M page, then return immediately with that frame
@@ -143,16 +144,16 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
     // Ignore noncacheable and dirty until swap and caches exist, respectively
 
-    pa |= GET_PDE_BITS(pde->phys_frame.twom_page_index);
+    pa |= GET_PDE_BITS(pde->phys_frame.twom_pte_index);
     pa |= GET_PDE_OFFSET(va);
 
     return pa;
   }
 
   // ONE_G page can also be mapped here
-  if (pte->page_metadata.page_size == ONE_G) {
+  if (pde->page_metadata.page_size == ONE_G) {
 
-    pa |= GET_PDP_BITS(pte->phys_frame.oneg_page_index);
+    pa |= GET_PDP_BITS(pde->phys_frame.oneg_pte_index);
     pa |= GET_PDP_OFFSET(va);
 
     return pa;
@@ -166,9 +167,9 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   // Otherwise use that to look up the leaf-level PTE
   // If that PTE is invalid or not matching, return fault and the OS will need
   // to make page entries.
-  pte_t *pte_base = pde->phys_frame;
+  pte_t *pte_base = (pte_t *) pde->phys_frame.fourk_pte_index;
   uint16_t pte_offset = GET_PTE_ENTRY_IDX(va);
-  pte_t *pde = pte_base[pte_offset];
+  pte_t *pte = &pte_base[pte_offset];
 
   // Otherwise, use that to look up the PDE
   // If PDE page is marked as a 2M page, then return immediately with that frame
@@ -199,7 +200,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   // macro we use. So we can pull out the checks and run them up front.
   if (pte->page_metadata.page_size == ONE_G) {
 
-    pa |= GET_PDP_BITS(pte->phys_frame.oneg_page_index);
+    pa |= GET_PDP_BITS(pte->phys_frame.oneg_pte_index);
     pa |= GET_PDP_OFFSET(va);
 
     return pa;
@@ -207,7 +208,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
   if (pte->page_metadata.page_size == TWO_M) {
 
-    pa |= GET_PDE_BITS(pte->phys_frame.twom_page_index);
+    pa |= GET_PDE_BITS(pte->phys_frame.twom_pte_index);
     pa |= GET_PDE_OFFSET(va);
 
     return pa;
@@ -215,7 +216,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
   if (pte->page_metadata.page_size == TWO_M) {
 
-    pa |= GET_PTE_BITS(pte->phys_frame.fourk_page_index);
+    pa |= GET_PTE_BITS(pte->phys_frame.fourk_pte_index);
     pa |= GET_PTE_OFFSET(va);
 
     return pa;

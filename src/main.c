@@ -3,7 +3,12 @@
  */
 
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+
 // Source files
+#include "hw_structures.h"
 #include "translation.h"
 #include "page_table.h"
 #include "page_table_api.h"
@@ -15,22 +20,22 @@
 #include "simple_mapping.h"
 
 
-void print_test_results(test_counter){
+static void print_test_results(uint64_t test_counter){
 	for (uint8_t i=0; i<64; i++){
-		printf("Result of test %d was %d\n", i, (((1<<i) & test_counter) >> i) );
+		printf("Result of test %hhu was %llu\n", i, (((1<<i) & test_counter) >> i) );
 	}
 }
 
 
 int main(){
 
-	ptw_sim_ctx_t sim_ctx = {0};
+	ptw_sim_context_t sim_ctx = {0};
 
 	uint64_t result = 0;
 
 	uint8_t test_counter = 0;
-	printf("Test %d is simple mapping test\n", test_counter);
-	result |= (run_simple_mapping_test(&ctx) << test_counter);
+	printf("Test %hhu is simple mapping test\n", test_counter);
+	result |= (run_simple_mapping_test(&sim_ctx) << test_counter);
 	test_counter++;
 
 

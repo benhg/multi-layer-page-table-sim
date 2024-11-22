@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g -O2 -I$(SRC_DIR)/include -I$(TEST_DIR)/include
+CFLAGS = -Wall -Wextra -Werror -g -O2 -I$(SRC_DIR)/include -I$(TEST_DIR)/include -I$(TEST_DIR)/simple_mapping/include
 
 # Project structure
 SRC_DIR = src
@@ -13,6 +13,7 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 TEST_SRCS = $(wildcard $(TEST_DIR)/*.c)
 OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 TEST_OBJS = $(patsubst $(TEST_DIR)/%.c, $(OBJ_DIR)/%.o, $(TEST_SRCS))
+TEST_OBJS += $(patsubst $(TEST_DIR)/simple_mapping/%.c, $(OBJ_DIR)/%.o, $(TEST_SRCS))
 
 # Output executables
 TARGET = $(BIN_DIR)/simulator
