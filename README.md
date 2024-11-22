@@ -103,6 +103,40 @@ This model assumes translation occurs after a cache miss but before accessing ma
 4. Physical Address Computation:
    a. Combine the resolved base physical page frame with the page offset to compute the final address.
 
+## File Structure
+
+The file structure for the project is as follows:
+
+```
+.
+├── Makefile
+├── README.md
+├── src
+│         ├── include
+│         │         ├── config.h
+│         │         ├── hw_structures.h
+│         │         ├── page_table.h
+│         │         ├── page_table_api.h
+│         │         ├── tlb.h
+│         │         ├── translation.h
+│         │         └── util.h
+│         ├── main.c
+│         ├── page_table.c
+│         ├── tlb.c
+│         ├── translation.c
+│         └── utils.c
+└── test
+    ├── include
+    │         └── test_utils.h
+    ├── simple_mapping
+    │         ├── include
+    │         │         └── simple_mapping.h
+    │         └── simple_mapping.c
+    └── test_utils.c
+```
+
+Please add new test files in `test/<test_name>/<test_name>.c`. Put include files for test driver functions in `test/<test_name>/include/<test_name>.h`. See `main.c` for examples of how to add tests.
+
 
 ## Future Work
 

@@ -2,53 +2,43 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -g -O2 -I$(SRC_DIR)/include -I$(TEST_DIR)/include -I$(TEST_DIR)/simple_mapping/include
 
-# Project structure
+# Directories
 SRC_DIR = src
 TEST_DIR = test
-OBJ_DIR = obj
-BIN_DIR = bin
+OBJ_DIR = build
 
-# Source and object files
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-TEST_SRCS = $(wildcard $(TEST_DIR)/*.c)
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
-TEST_OBJS = $(patsubst $(TEST_DIR)/%.c, $(OBJ_DIR)/%.o, $(TEST_SRCS))
-TEST_OBJS += $(patsubst $(TEST_DIR)/simple_mapping/%.c, $(OBJ_DIR)/%.o, $(TEST_SRCS))
+# Source files
+SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
+TEST_FILES := $(shell find $(TEST_DIR) -name '*.c')
+ALL_FILES := $(SRC_FILES) $(TEST_FILES)
 
-# Output executables
-TARGET = $(BIN_DIR)/simulator
-TEST_TARGET = $(BIN_DIR)/test_simulator
+# Object files
+OBJ_FILES := $(patsubst %.c, $(OBJ_DIR)/%.o, $(ALL_FILES))
+
+# Dependency files
+DEP_FILES := $(OBJ_FILES:.o=.d)
+
+# Target executable
+TARGET = simulator
 
 # Default target
 all: $(TARGET)
 
-# Rule to build the simulator target
-$(TARGET): $(OBJS)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
+# Build the executable
+$(TARGET): $(OBJ_FILES)
+	@echo "Linking $@..."
+	$(CC) $(CFLAGS) -o $@ $^
 
-# Rule to build test target
-$(TEST_TARGET): $(OBJS) $(TEST_OBJS)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) $^ -o $@
-
-# Rule to build object files from src
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)
+# Compile object files
+$(OBJ_DIR)/%.o: %.c
+	@mkdir -p $(@D)
+	@echo "Compiling $<..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Rule to build object files from test
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.c
-	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Test target
-test: $(TEST_TARGET)
-	./$(TEST_TARGET)
-
-# Clean up build artifacts
+# Clean up build files
 clean:
-	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "Cleaning up..."
+	@rm -rf $(OBJ_DIR) $(TARGET) $(DEP_FILES)
 
-# Phony targets
-.PHONY: all clean test
+# Include dependency files if they exist
+-include $(DEP_FILES)
