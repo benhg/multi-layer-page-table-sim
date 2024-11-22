@@ -69,6 +69,10 @@ typedef struct ptw_sim_context {
 
 	// TODO: add backend management pointers here for easy programming of falid page tables
 
+	/**
+	 * For completeness, we can put the PDE and PTE blocks as well
+	 */
+	pte_t pde_page_base[MAX_PID][NUM_PDE_ENTRY];
 
 } ptw_sim_context_t;
 
@@ -93,5 +97,17 @@ int invalidate_tlb_by_page(uintptr_t va, page_size_t page_size);
  * Use pseudo-LRU algorithm to evict an address from the TLB
  */
 int tlb_evict(page_size_t page_size);
+
+
+/**
+ * This models the x86 instruction `invlpg`
+ * 
+ * static inline void __native_flush_tlb_single(unsigned long addr) {
+       asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
+ *	}
+ */
+void inval_page(uintptr_t addr){
+
+}
 
 #endif
