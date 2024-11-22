@@ -3,7 +3,7 @@
 
 /**
  * @file config.h
- * @brief store config and util related stuff
+ * @brief store config related stuff
  */
 
 /**
@@ -24,7 +24,6 @@
 // 12 bits are needed as an offset into the 4k page
 #define VPN_MASK_4KB (~((1ULL << (va_size - 12)) -1))
 #define OFFSET_MASK_4KB (~VPN_MASK_4KB)
-
 
 
 #endif
