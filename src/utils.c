@@ -19,20 +19,20 @@ bool check_permissions(permissions_t permissions_req,
   bool execute_check = true;
 
   // Only set to false if the permissions request read
-  if (permissions_req.read == 1) {
-    if (permissions_page.read != 1) {
+  if (permissions_req.val.read == 1) {
+    if (permissions_page.val.read != 1) {
       read_check = false;
     }
   }
 
-  if (permissions_req.write == 1) {
-    if (permissions_page.write != 1) {
+  if (permissions_req.val.write == 1) {
+    if (permissions_page.val.write != 1) {
       write_check = false;
     }
   }
 
-  if (permissions_req.execute == 1) {
-    if (permissions_page.execute != 1) {
+  if (permissions_req.val.execute == 1) {
+    if (permissions_page.val.execute != 1) {
       execute_check = false;
     }
   }
