@@ -38,6 +38,6 @@
  *     - -EUNAUTHORIZED: Insufficient permissions to access the page.
  *     - -EACCESS: Access violation (e.g., user/supervisor mismatch).
  */
-uintptr_t translate(address_context_t *a_ctx);
+uintptr_t translate(address_context_t *a_ctx, ptw_sim_context_t *ctx);
 
 #endif

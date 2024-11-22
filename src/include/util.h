@@ -1,6 +1,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
+
 /**
  * Misc. useful macros
  */

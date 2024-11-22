@@ -7,6 +7,9 @@
 #ifndef HW_STRUCTURES_H
 #define HW_STRUCTURES_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "config.h"
 #include "util.h"
 
