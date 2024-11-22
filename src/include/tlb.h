@@ -6,6 +6,13 @@
 #ifndef TLB_H
 #define TLB_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "hw_structures.h"
+#include "page_table_api.h"
+
+
 /**
  * @brief Evicts an entry from the TLB using a modified LFU algorithm with decay.
  *

@@ -3,8 +3,11 @@
  *
  * TLB translation related functions
  */
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "tlb.h"
+#include "hw_structures.h"
 
 void lru_evict(tlb_t *tlb) {
   // For now, this is really more of a LFU algorithm.
@@ -51,14 +54,14 @@ void update_tlb(tlb_t *tlb, address_context_t *a_ctx, uint64_t phys_frame) {
   }
 
   tlb->occupancy[slot] = true;
-  tlb->slots_in_use++
+  tlb->slots_in_use++;
 
       tlb->arr[slot]
           .plru_counter = 0;
   tlb->arr[slot].pid = a_ctx->pid;
   tlb->arr[slot].permissions = a_ctx->permissions;
   tlb->arr[slot].va = a_ctx->va;
-  tlb->arr[slog].phys_frame = phys_frame;
+  tlb->arr[slot].phys_frame = phys_frame;
 }
 
 void update_tlbs(bool update_oneg, bool update_twom, bool update_fourk,
@@ -66,22 +69,21 @@ void update_tlbs(bool update_oneg, bool update_twom, bool update_fourk,
 
   if (update_oneg) {
     lru_evict(ctx->oneg_tlb);
-    update_tlb(a_ctx);
+    update_tlb(ctx->oneg_tlb, a_ctx, a_ctx->va);
   }
 
   if (update_twom) {
     lru_evict(ctx->twom_tlb);
-    update_tlb(a_ctx);
+    update_tlb(ctx->twom_tlb, a_ctx, a_ctx->va);
   }
 
   if (update_fourk) {
     lru_evict(ctx->fourk_tlb);
-    update_tlb(a_ctx);
+    update_tlb(ctx->fourk_tlb, a_ctx, a_ctx->va);
   }
 }
 
-uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
-                    permissions_t permissions, ptw_sim_context_t *ctx) {
+uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   /**
    * First, check the TLB
    * If hit, return;
@@ -104,21 +106,27 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
    * In hardware, that'd be all 3 in parallel and then returning the biggest
    * matching page
    */
-  uintptr_t address;
+  uintptr_t va = a_ctx->va;
+  uint32_t pid = a_ctx->pid;
+  permissions_t permissions = a_ctx->permissions;
+  uint8_t user_supervisor = a_ctx->user_supervisor;
 
-  tlbe_t *tlb = ctx->oneg_tlb;
+  bool update_oneg_tlb = false;
+    bool update_twom_tlb = false;
+    bool update_fourk_tlb = false;
+
+
+  tlb_t * tlb = ctx->oneg_tlb;
 
   for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
 
-    tlbe_t tlbe = oneg_tlb[i];
+    tlbe_t tlbe = tlb->arr[i];
 
     // If the PID doesn't match, continue
     if (pid != tlbe.pid) {
       continue;
     }
 
-    bool update_oneg_tlb = false, update_twom_tlb = false,
-         update_fourk_tlb = false;
 
     // If the address doesn't match continue
     // Address math for oneg is top (VA size - 30b)
@@ -141,7 +149,8 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
 
     // If we get here, we found our match. Return the address. The VPN gets
     // replaced by the physical frame, and the offset is identical
-    uintptr_t address = 0 address |= (tlbe.phys_frame & VPN_MASK_1GB);
+    uintptr_t address = 0;
+    address |= (tlbe.phys_frame & VPN_MASK_1GB);
     address |= (OFFSET_MASK_1GB & va);
 
     // On hit, update the PLRU counter
@@ -152,10 +161,10 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
 
   update_oneg_tlb = true;
 
-  tlb_t *tlb = ctx->twom_tlb;
+  tlb = ctx->twom_tlb;
   for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
 
-    tlbe_t tlbe = twom_tlb.arr[i];
+    tlbe_t tlbe = tlb->arr[i];
 
     // If the PID doesn't match, continue
     if (pid != tlbe.pid) {
@@ -186,7 +195,8 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
 
     // If we get here, we found our match. Return the address. The VPN gets
     // replaced by the physical frame, and the offset is identical
-    uintptr_t address = 0 address |= (tlbe.phys_frame & VPN_MASK_2MB);
+    uintptr_t address = 0;
+    address |= (tlbe.phys_frame & VPN_MASK_2MB);
     address |= (OFFSET_MASK_2MB & va);
 
     return address;
@@ -194,10 +204,10 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
 
   update_twom_tlb = true;
 
-  tlbe_t *tlb = ctx->fourk_tlb;
+  tlb = ctx->fourk_tlb;
   for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
 
-    tlbe_t tlbe = fourk_tlb[i];
+    tlbe_t tlbe = tlb->arr[i];
 
     // If the PID doesn't match, continue
     if (pid != tlbe.pid) {
@@ -228,7 +238,8 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
 
     // If we get here, we found our match. Return the address. The VPN gets
     // replaced by the physical frame, and the offset is identical
-    uintptr_t address = 0 address |= (tlbe.phys_frame & VPN_MASK_4KB);
+    uintptr_t address = 0;
+    address |= (tlbe.phys_frame & VPN_MASK_4KB);
     address |= (OFFSET_MASK_4KB & va);
 
     return address;
@@ -240,7 +251,7 @@ uintptr_t check_tlb(uintptr_t va, uint32_t pid, uint8_t user_supervisor,
   // Because if we hit on one of them, there's no point in calling update on
   // all 3. They will only map once.
 
-  update_tlbs(update_oneg_tlb, update_twom_tlb, update_fourk_tlb);
+  update_tlbs(update_oneg_tlb, update_twom_tlb, update_fourk_tlb, ctx, a_ctx);
 
   // If we get here, it is a TLB miss.
   return SIXTY_FOUR_BIT_MASK;

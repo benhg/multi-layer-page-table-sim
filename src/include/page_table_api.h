@@ -37,9 +37,9 @@ typedef struct ptw_sim_context {
 	/**
 	 * Three TLBs
 	 */
-	tlb_t oneg_tlb;
-	tlb_t twom_tlb;
-	tlb_t fourk_tlb;
+	tlb_t *oneg_tlb;
+	tlb_t* twom_tlb;
+	tlb_t *fourk_tlb;
 	/**
 	 * Array of pointers to page tables
 	 * In sim, these are indexes into the PT array
