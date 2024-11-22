@@ -32,7 +32,7 @@ For 4 KiB pages, the system uses 4 levels of translation. Each level contributes
 For 2 MiB pages, 3 levels of translation are used. The page offset increases to 21 bits, reducing the number of layers needed to resolve the address.
 ```
 +---------+---------+---------+---------+----------------------+
-| Level 4 | Level 3 | Level 2 | Level 1 | Page Offset          |
+| Level 4 | Level 3 | Level 2 |     Page Offset                |
 +---------+---------+---------+---------+----------------------+
 |   9b    |   9b    |   9b    |        21b                     |
 +---------+---------+---------+---------+----------------------+
@@ -43,7 +43,7 @@ For 1 GiB pages, only 2 levels of translation are required. The offset expands t
 
 ```
 +---------+---------+---------+---------+----------------------+
-| Level 4 | Level 3 | Level 2 | Level 1 | Page Offset          |
+| Level 4 | Level 3 |               Page Offset                |
 +---------+---------+---------+---------+----------------------+
 |   9b    |   9b    |           30b                            |
 +---------+---------+---------+---------+----------------------+
