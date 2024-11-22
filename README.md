@@ -20,27 +20,35 @@ The virtual address system supports three page sizes: 4 KiB, 2 MiB, and 1 GiB, a
 ### 4 KiB Pages
 For 4 KiB pages, the system uses 4 levels of translation. Each level contributes 9 bits to the final physical address, and the page offset is 12 bits.
 
+```
 +---------+---------+---------+---------+----------------------+
 | Level 4 | Level 3 | Level 2 | Level 1 | Page Offset          |
 +---------+---------+---------+---------+----------------------+
 |   9b    |   9b    |   9b    |   9b    |        12b           |
 +---------+---------+---------+---------+----------------------+
+```
+
 ### 2 MiB Pages
 For 2 MiB pages, 3 levels of translation are used. The page offset increases to 21 bits, reducing the number of layers needed to resolve the address.
-
+```
 +---------+---------+---------+---------+----------------------+
 | Level 4 | Level 3 | Level 2 | Level 1 | Page Offset          |
 +---------+---------+---------+---------+----------------------+
 |   9b    |   9b    |   9b    |        21b                     |
 +---------+---------+---------+---------+----------------------+
+```
+
 ### 1 GiB Pages
 For 1 GiB pages, only 2 levels of translation are required. The offset expands to 30 bits, simplifying the address resolution process.
 
+```
 +---------+---------+---------+---------+----------------------+
 | Level 4 | Level 3 | Level 2 | Level 1 | Page Offset          |
 +---------+---------+---------+---------+----------------------+
 |   9b    |   9b    |           30b                            |
 +---------+---------+---------+---------+----------------------+
+```
+
 
 ### Hypothetical Larger Pages
 If a single-level translation were added for 512 GiB pages, the offset would  be 39 bits, leaving only the 9-bit Level 4 index. However, this configuration is impractical for most use cases due to excessive page size. 
