@@ -10,8 +10,6 @@
  * Misc. useful macros
  */
 
-
-
 #define VA_SIZE 48
 #define PA_SIZE 48
 
