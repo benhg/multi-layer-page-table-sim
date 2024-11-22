@@ -4,6 +4,9 @@
  * Structs that reflect HW structures
  */
 
+#ifndef HW_STRUCTURES_H
+#define HW_STRUCTURES_H
+
 /**
  * TLB
  */
@@ -61,3 +64,4 @@ typedef struct page_table_entry {
 // Shorthand
 typedef page_table_entry_t pte_t;
 
+#endif
