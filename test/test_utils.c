@@ -4,6 +4,8 @@
  * Utility functions for testing
  */
 
+#include <stdlib.h>
+
 void populate_address_context(address_context_t *a_ctx, uint64_t va, permissions_t permissions, uint8_t user_supervisor, uint32_t pid) {
     if (a_ctx == NULL) {
         return; // Handle null pointer gracefully.
@@ -148,4 +150,62 @@ void initialize_page_table_entry(page_table_entry_t *entry, uint32_t pid, size_t
     entry->page_metadata.permissions = DEFAULT_PERMISSIONS; // Set default permissions
     entry->page_metadata.page_size = FOUR_K_PAGE_SIZE; // Default to 4KB pages
     entry->page_metadata.valid = 0;  // Initially invalid
+}
+
+void teardown_sim_context(ptw_sim_context_t *ctx, size_t max_pid) {
+    if (!ctx) return;
+
+    // Iterate over all PIDs to free page table memory
+    for (size_t pid = 0; pid < max_pid; pid++) {
+        page_table_entry_t *sdp_base = ctx->page_table_pointers[pid];
+
+        if (!sdp_base) continue;
+
+        // Free each level of page table entries
+        for (size_t sdp_idx = 0; sdp_idx < NUM_ENTRIES_PER_PAGE; sdp_idx++) {
+            page_table_entry_t *pdp_base = sdp_base[sdp_idx].phys_frame;
+            if (!pdp_base) continue;
+
+            for (size_t pdp_idx = 0; pdp_idx < NUM_ENTRIES_PER_PAGE; pdp_idx++) {
+                page_table_entry_t *pde_base = pdp_base[pdp_idx].phys_frame;
+                if (!pde_base) continue;
+
+                for (size_t pde_idx = 0; pde_idx < NUM_ENTRIES_PER_PAGE; pde_idx++) {
+                    page_table_entry_t *pte_base = pde_base[pde_idx].phys_frame;
+                    if (pte_base) {
+                        free(pte_base); // Free PTE base
+                    }
+                }
+
+                free(pde_base); // Free PDE base
+            }
+
+            free(pdp_base); // Free PDP base
+        }
+
+        free(sdp_base); // Free SDP base
+        ctx->page_table_pointers[pid] = NULL;
+    }
+
+    // Clear the TLBs (optional depending on simulator design)
+    clear_tlb(&ctx->oneg_tlb);
+    clear_tlb(&ctx->twom_tlb);
+    clear_tlb(&ctx->fourk_tlb);
+
+    // Clear backend metadata (if dynamically allocated)
+    if (ctx->backend_metadata) {
+        free(ctx->backend_metadata);
+        ctx->backend_metadata = NULL;
+    }
+}
+
+void clear_tlb(tlb_t *tlb) {
+    if (!tlb) return;
+
+    // Clear all TLB entries
+    memset(tlb->entries, 0, sizeof(tlb_entry_t) * tlb->num_entries);
+
+    // Reset metadata (optional, depending on your implementation)
+    tlb->num_valid_entries = 0;
+    tlb->last_access_idx = 0; // Reset any tracking of LRU or similar
 }
