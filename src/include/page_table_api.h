@@ -77,37 +77,4 @@ typedef struct ptw_sim_context {
 } ptw_sim_context_t;
 
 
-
-/**
- * Translate function
- * 
- * This is the entry point for our memory translation. Basically, what has happened to get here is a cache miss (assuming our cache is virtually addressed) and we need to go to memory
- * 
- * Later, we may implement an actual cache into the simulator but for now, this is the entry point
- */
-uintptr_t translate(uintptr_t va, uint32_t pid, uint8_t user_supervisor, uint8_t permisions);
-
-
-/**
- * This is mostly going to be used internally
- */
-int invalidate_tlb_by_page(uintptr_t va, page_size_t page_size);
-
-/**
- * Use pseudo-LRU algorithm to evict an address from the TLB
- */
-int tlb_evict(page_size_t page_size);
-
-
-/**
- * This models the x86 instruction `invlpg`
- * 
- * static inline void __native_flush_tlb_single(unsigned long addr) {
-       asm volatile("invlpg (%0)" ::"r" (addr) : "memory");
- *	}
- */
-void inval_page(uintptr_t addr){
-
-}
-
 #endif
