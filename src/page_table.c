@@ -7,9 +7,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "page_table.h"
 #include "page_table_api.h"
 #include "util.h"
-#include "page_table.h"
 
 uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   /**
@@ -34,7 +34,6 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   // Pointer to the page table base. That is a block of 512 SDP entries
   uint32_t pid = a_ctx->pid;
   pte_t *page_table_base = ctx->page_table_pointers[pid];
-  
 
   // Top 9 bits of VA specify SPDP pointer
   // No page size maps to a real page at this level
@@ -66,7 +65,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
 
   // The phys_frame is overloaded. In this case, it points at a 4k page.
   // This address should always be 4k-aligned
-  pte_t *pdp_base = (pte_t *) sdp->phys_frame.oneg_pte_index;
+  pte_t *pdp_base = (pte_t *)sdp->phys_frame.oneg_pte_index;
   // Next 9 bits of VA specify PDP pointer
   // If PDP pointer is marked 1G page, return immediately with that frame
   uint16_t pdp_offset = GET_PDP_ENTRY_IDX(va);
@@ -110,7 +109,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
     return -EUNAUTHORIZED;
   }
 
-  pte_t *pde_base = (pte_t *) pdp->phys_frame.twom_pte_index;
+  pte_t *pde_base = (pte_t *)pdp->phys_frame.twom_pte_index;
   uint16_t pde_offset = GET_PDP_ENTRY_IDX(va);
   pte_t *pde = &pde_base[pde_offset];
 
@@ -167,7 +166,7 @@ uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   // Otherwise use that to look up the leaf-level PTE
   // If that PTE is invalid or not matching, return fault and the OS will need
   // to make page entries.
-  pte_t *pte_base = (pte_t *) pde->phys_frame.fourk_pte_index;
+  pte_t *pte_base = (pte_t *)pde->phys_frame.fourk_pte_index;
   uint16_t pte_offset = GET_PTE_ENTRY_IDX(va);
   pte_t *pte = &pte_base[pte_offset];
 

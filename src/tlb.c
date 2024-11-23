@@ -3,11 +3,11 @@
  *
  * TLB translation related functions
  */
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "tlb.h"
 #include "hw_structures.h"
+#include "tlb.h"
 
 void lru_evict(tlb_t *tlb) {
   // For now, this is really more of a LFU algorithm.
@@ -56,8 +56,7 @@ void update_tlb(tlb_t *tlb, address_context_t *a_ctx, uint64_t phys_frame) {
   tlb->occupancy[slot] = true;
   tlb->slots_in_use++;
 
-      tlb->arr[slot]
-          .plru_counter = 0;
+  tlb->arr[slot].plru_counter = 0;
   tlb->arr[slot].pid = a_ctx->pid;
   tlb->arr[slot].permissions = a_ctx->permissions;
   tlb->arr[slot].va = a_ctx->va;
@@ -83,7 +82,8 @@ void update_tlbs(bool update_oneg, bool update_twom, bool update_fourk,
   }
 }
 
-uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx, tlb_update_ctx_t * tuc) {
+uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx,
+                    tlb_update_ctx_t *tuc) {
   /**
    * First, check the TLB
    * If hit, return;
@@ -118,7 +118,7 @@ uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx, tlb_update
   tuc->twom = update_twom_tlb;
   tuc->fourk = update_fourk_tlb;
 
-  tlb_t * tlb = ctx->oneg_tlb;
+  tlb_t *tlb = ctx->oneg_tlb;
 
   for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
 
@@ -128,7 +128,6 @@ uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx, tlb_update
     if (pid != tlbe.pid) {
       continue;
     }
-
 
     // If the address doesn't match continue
     // Address math for oneg is top (VA size - 30b)
