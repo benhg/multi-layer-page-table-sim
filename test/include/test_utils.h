@@ -7,6 +7,13 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
+#include "hw_structures.h"
+#include "config.h"
+#include "page_table.h"
+#include "util.h"
+#include "tlb.h"
+#include "page_table_api.h"
+
 /**
  * @brief Populates an address_context_t structure with the given parameters.
  *

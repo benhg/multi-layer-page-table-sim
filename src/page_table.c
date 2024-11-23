@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 #include "page_table_api.h"
-
+#include "util.h"
 #include "page_table.h"
 
 uintptr_t walk(address_context_t *a_ctx, ptw_sim_context_t *ctx) {

@@ -59,6 +59,16 @@ typedef struct permissions {
 } permissions_t;
 
 
+/**
+ * Struct specifying which TLBs to update
+ */
+typedef struct tlb_update_ctx{
+    bool oneg;
+    bool twom;
+    bool fourk;
+}tlb_update_ctx_t;
+
+
 
 /**
  * Check if a page's permissions are more or less strict than the permissions requested

@@ -62,7 +62,7 @@ void update_tlbs(bool update_oneg, bool update_twom, bool update_fourk,
  * @param ctx Pointer to the page table walk simulation context.
  * @return Physical address on a TLB hit, or a special value indicating a miss.
  */
-uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx);
+uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx, tlb_update_ctx_t * tuc);
 
 
 

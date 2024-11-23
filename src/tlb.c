@@ -83,7 +83,7 @@ void update_tlbs(bool update_oneg, bool update_twom, bool update_fourk,
   }
 }
 
-uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
+uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx, tlb_update_ctx_t * tuc) {
   /**
    * First, check the TLB
    * If hit, return;
@@ -112,9 +112,11 @@ uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   uint8_t user_supervisor = a_ctx->user_supervisor;
 
   bool update_oneg_tlb = false;
-    bool update_twom_tlb = false;
-    bool update_fourk_tlb = false;
-
+  bool update_twom_tlb = false;
+  bool update_fourk_tlb = false;
+  tuc->oneg = update_oneg_tlb;
+  tuc->twom = update_twom_tlb;
+  tuc->fourk = update_fourk_tlb;
 
   tlb_t * tlb = ctx->oneg_tlb;
 
@@ -160,6 +162,9 @@ uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   }
 
   update_oneg_tlb = true;
+  tuc->oneg = update_oneg_tlb;
+  tuc->twom = update_twom_tlb;
+  tuc->fourk = update_fourk_tlb;
 
   tlb = ctx->twom_tlb;
   for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
@@ -203,6 +208,9 @@ uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   }
 
   update_twom_tlb = true;
+  tuc->oneg = update_oneg_tlb;
+  tuc->twom = update_twom_tlb;
+  tuc->fourk = update_fourk_tlb;
 
   tlb = ctx->fourk_tlb;
   for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
@@ -246,6 +254,9 @@ uintptr_t check_tlb(address_context_t *a_ctx, ptw_sim_context_t *ctx) {
   }
 
   update_fourk_tlb = true;
+  tuc->oneg = update_oneg_tlb;
+  tuc->twom = update_twom_tlb;
+  tuc->fourk = update_fourk_tlb;
 
   // Only do the LRU evictions / populations here.
   // Because if we hit on one of them, there's no point in calling update on

@@ -1,11 +1,15 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g -O2 -I$(SRC_DIR)/include -I$(TEST_DIR)/include -I$(TEST_DIR)/simple_mapping/include
+CFLAGS = -Wall -Werror -g -MMD
 
 # Directories
 SRC_DIR = src
 TEST_DIR = test
 OBJ_DIR = build
+
+# Include directories (recursively)
+INCLUDE_DIRS := $(shell find $(SRC_DIR) $(TEST_DIR) -type d -name include)
+INCLUDE_FLAGS := $(addprefix -I, $(INCLUDE_DIRS))
 
 # Source files
 SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
@@ -27,13 +31,13 @@ all: $(TARGET)
 # Build the executable
 $(TARGET): $(OBJ_FILES)
 	@echo "Linking $@..."
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -o $@ $^
 
 # Compile object files
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p $(@D)
 	@echo "Compiling $<..."
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 # Clean up build files
 clean:

@@ -36,6 +36,7 @@ typedef struct tlb_entry {
 			permissions_t permissions;
 			uint32_t pid;
 			uint8_t plru_counter; // Counter for PLRU eviction
+            uint8_t valid: 1;
 } tlb_entry_t;
 
 // Shorthand

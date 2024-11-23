@@ -8,6 +8,9 @@
 #define PAGE_TABLE_H
 
 #include "config.h"
+#include "hw_structures.h"
+#include "util.h"
+#include "page_table_api.h"
 
 /**
  * Bit arithmetic macros for decoding pieces of addresses

@@ -5,6 +5,14 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+
+#include "hw_structures.h"
+#include "config.h"
+#include "page_table.h"
+#include "util.h"
+#include "tlb.h"
+#include "page_table_api.h"
 
 void populate_address_context(address_context_t *a_ctx, uint64_t va, permissions_t permissions, uint8_t user_supervisor, uint32_t pid) {
     if (a_ctx == NULL) {
@@ -18,15 +26,34 @@ void populate_address_context(address_context_t *a_ctx, uint64_t va, permissions
 }
 
 
+/**
+ * @brief Helper function to initialize a TLB.
+ *
+ * @param tlb Pointer to the TLB structure to initialize.
+ */
+void initialize_tlb(tlb_t *tlb) {
+
+    tlb = (tlb_t *)malloc(sizeof(tlb_t));
+    
+    memset(tlb, 0, sizeof(tlb_t));
+
+    // Optionally initialize each TLB entry to a default invalid state
+    for (size_t i = 0; i < TLB_ENTRY_COUNT; i++) {
+        tlb->arr[i].valid = 0; // Mark all entries as invalid initially
+    }
+}
+
+
+
 void populate_sim_context(ptw_sim_context_t *ctx, size_t max_pid) {
     if (ctx == NULL) {
         return; // Handle null pointer gracefully.
     }
 
     // Initialize the TLBs
-    initialize_tlb(&ctx->oneg_tlb, ONE_G_PAGE_SIZE);  // 1GB page TLB
-    initialize_tlb(&ctx->twom_tlb, TWO_M_PAGE_SIZE);  // 2MB page TLB
-    initialize_tlb(&ctx->fourk_tlb, FOUR_K_PAGE_SIZE); // 4KB page TLB
+    initialize_tlb(&ctx->oneg_tlb);  // 1GB page TLB
+    initialize_tlb(&ctx->twom_tlb);  // 2MB page TLB
+    initialize_tlb(&ctx->fourk_tlb); // 4KB page TLB
 
     // Initialize the page table pointers for each PID
     for (size_t pid = 0; pid < max_pid && pid < MAX_PID; pid++) {
@@ -51,7 +78,7 @@ void populate_sim_context(ptw_sim_context_t *ctx, size_t max_pid) {
                 // Allocate memory for PDE table (3rd level)
                 pdp_entry->phys_frame = (uintptr_t)allocate_page_table();
                 pdp_entry->page_metadata.valid = 1;
-                pdp_entry->page_metadata.page_size = PDP_PAGE_SIZE; // Set to PDP level size
+                pdp_entry->page_metadata.page_size = ONE_G; // Set to PDP level size
                 pdp_entry->vpn = (sdp_idx << 9) | pdp_idx; // Example VPN
 
                 // Populate the PDE table
@@ -62,7 +89,7 @@ void populate_sim_context(ptw_sim_context_t *ctx, size_t max_pid) {
                     // Allocate memory for PTE table (4th level)
                     pde_entry->phys_frame = (uintptr_t)allocate_page_table();
                     pde_entry->page_metadata.valid = 1;
-                    pde_entry->page_metadata.page_size = PDE_PAGE_SIZE; // Set to PDE level size
+                    pde_entry->page_metadata.page_size = TWO_M; // Set to PDE level size
                     pde_entry->vpn = (pdp_idx << 9) | pde_idx; // Example VPN
 
                     // Populate the PTE table
@@ -72,7 +99,7 @@ void populate_sim_context(ptw_sim_context_t *ctx, size_t max_pid) {
 
                         // Set up leaf-level PTE
                         pte_entry->page_metadata.valid = 1;
-                        pte_entry->page_metadata.page_size = FOUR_K_PAGE_SIZE; // Leaf size
+                        pte_entry->page_metadata.page_size = FOUR_K; // Leaf size
                         pte_entry->vpn = (pde_idx << 9) | pte_idx; // Example VPN
                         pte_entry->phys_frame = allocate_physical_frame(pte_entry->vpn); // Allocate physical frame
                         pte_entry->page_metadata.permissions = DEFAULT_PERMISSIONS; // Default permissions
@@ -111,31 +138,6 @@ uintptr_t allocate_physical_frame(uintptr_t vpn) {
     uintptr_t frame = next_frame;
     next_frame += FOUR_K_PAGE_SIZE; // Increment by 4KB for each allocation
     return frame;
-}
-
-
-/**
- * @brief Helper function to initialize a TLB.
- *
- * @param tlb Pointer to the TLB structure to initialize.
- * @param page_size The page size associated with the TLB (e.g., 4KB, 2MB, 1GB).
- */
-void initialize_tlb(tlb_t *tlb, size_t page_size) {
-    if (tlb == NULL) {
-        return;
-    }
-
-    tlb->page_size = page_size;
-    tlb->entries = (tlb_entry_t *)malloc(MAX_TLB_ENTRIES * sizeof(tlb_entry_t));
-    if (tlb->entries == NULL) {
-        fprintf(stderr, "Error: Memory allocation failed for TLB entries.\n");
-        return;
-    }
-
-    // Optionally initialize each TLB entry to a default invalid state
-    for (size_t i = 0; i < MAX_TLB_ENTRIES; i++) {
-        tlb->entries[i].valid = 0; // Mark all entries as invalid initially
-    }
 }
 
 
@@ -203,7 +205,7 @@ void clear_tlb(tlb_t *tlb) {
     if (!tlb) return;
 
     // Clear all TLB entries
-    memset(tlb->entries, 0, sizeof(tlb_entry_t) * tlb->num_entries);
+    memset(tlb->arr, 0, sizeof(tlb_entry_t) * tlb->num_entries);
 
     // Reset metadata (optional, depending on your implementation)
     tlb->num_valid_entries = 0;
