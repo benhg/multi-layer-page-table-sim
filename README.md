@@ -22,9 +22,9 @@ For 4 KiB pages, the system uses 4 levels of translation. Each level contributes
 
 ```
 +---------+---------+---------+---------+----------------------+
-| Level 4 | Level 3 | Level 2 | Level 1 | Page Offset          |
+| Level 4 | Level 3 | Level 2 | Level 1 | Page Offset   |
 +---------+---------+---------+---------+----------------------+
-|   9b    |   9b    |   9b    |   9b    |        12b           |
+|   9b    |   9b    |   9b    |   9b    |        12b    |
 +---------+---------+---------+---------+----------------------+
 ```
 
@@ -32,9 +32,9 @@ For 4 KiB pages, the system uses 4 levels of translation. Each level contributes
 For 2 MiB pages, 3 levels of translation are used. The page offset increases to 21 bits, reducing the number of layers needed to resolve the address.
 ```
 +---------+---------+---------+---------+----------------------+
-| Level 4 | Level 3 | Level 2 |     Page Offset                |
+| Level 4 | Level 3 | Level 2 |     Page Offset         |
 +---------+---------+---------+---------+----------------------+
-|   9b    |   9b    |   9b    |        21b                     |
+|   9b    |   9b    |   9b    |        21b       |
 +---------+---------+---------+---------+----------------------+
 ```
 
@@ -43,9 +43,9 @@ For 1 GiB pages, only 2 levels of translation are required. The offset expands t
 
 ```
 +---------+---------+---------+---------+----------------------+
-| Level 4 | Level 3 |               Page Offset                |
+| Level 4 | Level 3 |        Page Offset         |
 +---------+---------+---------+---------+----------------------+
-|   9b    |   9b    |           30b                            |
+|   9b    |   9b    |    30b       |
 +---------+---------+---------+---------+----------------------+
 ```
 
@@ -112,26 +112,26 @@ The file structure for the project is as follows:
 ├── Makefile
 ├── README.md
 ├── src
-│         ├── include
-│         │         ├── config.h
-│         │         ├── hw_structures.h
-│         │         ├── page_table.h
-│         │         ├── page_table_api.h
-│         │         ├── tlb.h
-│         │         ├── translation.h
-│         │         └── util.h
-│         ├── main.c
-│         ├── page_table.c
-│         ├── tlb.c
-│         ├── translation.c
-│         └── utils.c
+│  ├── include
+│  │  ├── config.h
+│  │  ├── hw_structures.h
+│  │  ├── page_table.h
+│  │  ├── page_table_api.h
+│  │  ├── tlb.h
+│  │  ├── translation.h
+│  │  └── util.h
+│  ├── main.c
+│  ├── page_table.c
+│  ├── tlb.c
+│  ├── translation.c
+│  └── utils.c
 └── test
     ├── include
-    │         └── test_utils.h
+    │  └── test_utils.h
     ├── simple_mapping
-    │         ├── include
-    │         │         └── simple_mapping.h
-    │         └── simple_mapping.c
+    │  ├── include
+    │  │  └── simple_mapping.h
+    │  └── simple_mapping.c
     └── test_utils.c
 ```
 
