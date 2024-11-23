@@ -39,7 +39,7 @@ void populate_sim_context(ptw_sim_context_t *ctx, size_t max_pid);
  * @param tlb Pointer to the TLB structure to initialize.
  * @param page_size The page size associated with the TLB (e.g., 4KB, 2MB, 1GB).
  */
-void initialize_tlb(tlb_t *tlb, size_t page_size);
+void initialize_tlb(tlb_t *tlb);
 
 /**
  * @brief Helper function to initialize a page table entry.
@@ -76,5 +76,32 @@ void teardown_sim_context(ptw_sim_context_t *ctx, size_t max_pid);
  * @note If the TLB pointer is `NULL`, the function does nothing.
  */
 void clear_tlb(tlb_t *tlb);
+
+/**
+ * @brief Allocates and initializes a new page table.
+ *
+ * This function dynamically allocates memory for a page table and initializes 
+ * its entries to default values. Each page table contains 512 entries, as per 
+ * the x86-64 paging model. The entries are initially invalid until populated 
+ * with specific mappings.
+ *
+ * The allocated memory is 4KB aligned, ensuring compatibility with hardware 
+ * paging requirements. The caller is responsible for deallocating the memory 
+ * using an appropriate teardown function to avoid memory leaks.
+ *
+ * @return A pointer to the newly allocated page table on success.
+ *         Returns NULL if the memory allocation fails.
+ *
+ * Example:
+ * @code
+ * page_table_entry_t *page_table = allocate_page_table();
+ * if (!page_table) {
+ *     fprintf(stderr, "Failed to allocate page table\n");
+ *     return -1;
+ * }
+ * // Populate the page table here...
+ * @endcode
+ */
+page_table_entry_t *allocate_page_table();
 
 #endif

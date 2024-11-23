@@ -57,6 +57,7 @@
 #define GET_PDE_ENTRY_IDX(VA) ((GET_PDE_BITS(VA) >> PDE_STARTING_BIT))
 #define GET_PTE_ENTRY_IDX(VA) ((GET_PTE_BITS(VA) >> PTE_STARTING_BIT))
 
+#define NUM_ENTRIES_PER_PAGE 512
 
 /**
  * Function declarations for page tables
