@@ -21,7 +21,7 @@
 static void print_test_results(uint64_t test_counter, uint64_t test_run) {
   for (uint8_t i = 0; i < 64; i++) {
     if ((((1 << i) & test_run) >> i) == 1) {
-      printf("Result of test %hhu was %llu\n", i,
+      printf("Result of test %hhu was %lu\n", i,
              (((1 << i) & test_counter) >> i));
     }
   }
