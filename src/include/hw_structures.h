@@ -69,9 +69,9 @@ typedef struct page_table_entry {
                 // duplicated.
   union {
     uintptr_t
-        oneg_pte_index : 8; //< One gig PTE offset (which page entry do we read)
-    uintptr_t twom_pte_index : 17;  //< Two meg PTE offset
-    uintptr_t fourk_pte_index : 24; //< 4K page PTE offset
+        oneg_pte_index; //< One gig PTE offset (which page entry do we read)
+    uintptr_t twom_pte_index;  //< Two meg PTE offset
+    uintptr_t fourk_pte_index; //< 4K page PTE offset
   } phys_frame;                     //< Physical address base
                                     // The place the page maps to
   // Separated by size to help keep address comparisons clear.
