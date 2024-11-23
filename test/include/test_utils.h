@@ -104,4 +104,22 @@ void clear_tlb(tlb_t *tlb);
  */
 page_table_entry_t *allocate_page_table();
 
+/**
+ * @brief Sets up a mapping in the page table hierarchy.
+ *
+ * This function configures a virtual-to-physical address mapping in the
+ * hierarchical page tables of the simulator. It navigates through the levels
+ * (SDP, PDP, PDE, PTE) to set up the mapping, creating intermediate levels
+ * if they do not already exist.
+ *
+ * @param ctx Pointer to the page table walker simulator context.
+ * @param pid Process ID for which the mapping should be set.
+ * @param va Virtual address to be mapped.
+ * @param pa Physical address to map the virtual address to.
+ * @param page_size Size of the page (e.g., 1G, 2M, or 4K).
+ * @param perms Permissions for the mapping (e.g., read, write, execute).
+ * @return 0 on success, -1 on failure (e.g., invalid inputs or memory allocation errors).
+ */
+int setup_mapping(ptw_sim_context_t *ctx, uint32_t pid, uintptr_t va, uintptr_t pa, page_size_t page_size, permissions_t perms);
+
 #endif

@@ -215,3 +215,95 @@ void clear_tlb(tlb_t *tlb) {
         tlb->arr[i].plru_counter = 0; // Reset any tracking of LRU or similar
     }
 }
+
+int setup_mapping(ptw_sim_context_t *ctx, uint32_t pid, uintptr_t va, uintptr_t pa, page_size_t page_size, permissions_t perms) {
+    if (!ctx || pid >= MAX_PID) {
+        fprintf(stderr, "Invalid context or PID.\n");
+        return -1;
+    }
+
+    // Step 1: Get the base page table for the given PID
+    pte_t *sdp_base = ctx->page_table_pointers[pid];
+    if (!sdp_base) {
+        fprintf(stderr, "Invalid page table base for PID %u.\n", pid);
+        return -1;
+    }
+
+    // Step 2: Navigate to the SDP entry
+    uint16_t sdp_idx = GET_SDP_ENTRY_IDX(va);
+    pte_t *sdp_entry = &sdp_base[sdp_idx];
+    if (!sdp_entry->page_metadata.valid) {
+        // Allocate a new page directory if not already present
+        sdp_entry->phys_frame.oneg_pte_index = (uintptr_t)allocate_page_table();
+        if (!sdp_entry->phys_frame.oneg_pte_index) {
+            fprintf(stderr, "Failed to allocate SDP table.\n");
+            return -1;
+        }
+        sdp_entry->page_metadata.valid = 1;
+    }
+
+    // Step 3: Navigate to the PDP entry
+    pte_t *pdp_base = (pte_t *)sdp_entry->phys_frame.oneg_pte_index;
+    uint16_t pdp_idx = GET_PDP_ENTRY_IDX(va);
+    pte_t *pdp_entry = &pdp_base[pdp_idx];
+    if (!pdp_entry->page_metadata.valid) {
+        pdp_entry->phys_frame.oneg_pte_index = (uintptr_t)allocate_page_table();
+        if (!pdp_entry->phys_frame.oneg_pte_index) {
+            fprintf(stderr, "Failed to allocate PDP table.\n");
+            return -1;
+        }
+        pdp_entry->page_metadata.valid = 1;
+    }
+
+    // If the page size is 1G, set up the mapping here
+    if (page_size == ONE_G) {
+        pdp_entry->page_metadata.valid = 1;
+        pdp_entry->page_metadata.page_size = ONE_G;
+        pdp_entry->page_metadata.permissions = perms;
+        pdp_entry->phys_frame.oneg_pte_index = pa;
+        return 0;
+    }
+
+    // Step 4: Navigate to the PDE entry
+    pte_t *pde_base = (pte_t *)pdp_entry->phys_frame.twom_pte_index;
+    uint16_t pde_idx = GET_PDE_ENTRY_IDX(va);
+    pte_t *pde_entry = &pde_base[pde_idx];
+    if (!pde_entry->page_metadata.valid) {
+        pde_entry->phys_frame.twom_pte_index = (uintptr_t)allocate_page_table();
+        if (!pde_entry->phys_frame.twom_pte_index) {
+            fprintf(stderr, "Failed to allocate PDE table.\n");
+            return -1;
+        }
+        pde_entry->page_metadata.valid = 1;
+    }
+
+    // If the page size is 2M, set up the mapping here
+    if (page_size == TWO_M) {
+        pde_entry->page_metadata.valid = 1;
+        pde_entry->page_metadata.page_size = TWO_M;
+        pde_entry->page_metadata.permissions = perms;
+        pde_entry->phys_frame.twom_pte_index = pa;
+        return 0;
+    }
+
+    // Step 5: Navigate to the PTE entry
+    pte_t *pte_base = (pte_t *)pde_entry->phys_frame.fourk_pte_index;
+    uint16_t pte_idx = GET_PTE_ENTRY_IDX(va);
+    pte_t *pte_entry = &pte_base[pte_idx];
+    if (!pte_entry->page_metadata.valid) {
+        pte_entry->page_metadata.valid = 1;
+    }
+
+    // Set up the final 4K mapping
+    if (page_size == FOUR_K) {
+        pte_entry->page_metadata.valid = 1;
+        pte_entry->page_metadata.page_size = FOUR_K;
+        pte_entry->page_metadata.permissions = perms;
+        pte_entry->phys_frame.fourk_pte_index = pa;
+        return 0;
+    }
+
+    // If we reached here, something went wrong
+    fprintf(stderr, "Invalid page size or mapping configuration.\n");
+    return -1;
+}
